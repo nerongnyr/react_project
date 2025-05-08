@@ -86,7 +86,7 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
               fullWidth
               InputProps={{
                 disableUnderline: true,
-                sx: { fontSize: '1.15rem', lineHeight: '1.7', px: 1 },
+                sx: { fontSize: '0.85rem', lineHeight: '1.7', px: 1 },
               }}
             />
             <Box sx={{ textAlign: 'right', fontSize: '0.75rem', color: 'gray', mt: 0.5 }}>
