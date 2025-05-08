@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Button, Box, Typography
+  Avatar, Button, Box, Typography, TextField
 } from '@mui/material';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
 
 export default function RegisterDialog({ open, onClose, onSuccess }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState(null);
 
   const handleSubmit = () => {
     if (!title || !content) {
@@ -18,9 +19,9 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('content', content);
-    if (image) formData.append('image', image);
+    if (images) formData.append('images', images);
 
-    fetch('http://localhost:3005/posts/register', {
+    fetch('http://localhost:3005/sns-post', {
       method: 'POST',
       body: formData,
     })
@@ -29,7 +30,7 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
         alert('게시물 등록 완료!');
         setTitle('');
         setContent('');
-        setImage(null);
+        setImages(null);
         onSuccess(); // 예: 글 목록 새로고침
         onClose();   // 모달 닫기
       })
@@ -37,43 +38,69 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ backgroundColor: 'white' }}>게시물 등록</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ textAlign: 'center', fontSize: '1.4rem', fontWeight: 'bold' }}>
+        게시물 등록
+      </DialogTitle>
+
       <DialogContent sx={{ backgroundColor: 'white' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField
-            label="제목"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="내용"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            fullWidth
-            multiline
-            rows={4}
-          />
-          <Button variant="outlined" component="label">
-            이미지 업로드
-            <input
-              type="file"
-              hidden
-              onChange={(e) => {
-                if (e.target.files.length > 0) {
-                  setImage(e.target.files[0]);
-                }
+        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, mt: 2 }}>
+          {/* 왼쪽: 사진 업로드 */}
+          <Box sx={{ flex: 1 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<PhotoCamera />}
+              fullWidth
+              sx={{ mb: 1 }}
+            >
+              사진 업로드
+              <input
+                type="file"
+                hidden
+                onChange={(e) => {
+                  if (e.target.files.length > 0) {
+                    setImages(e.target.files[0]);
+                  }
+                }}
+              />
+            </Button>
+            {images && <Typography variant="body2">{images.name}</Typography>}
+          </Box>
+
+          {/* 오른쪽: 프로필 + 내용 */}
+          <Box sx={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+            {/* 프로필 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 2 }}>
+              <Avatar src="/avatars/default.png" sx={{ width: 32, height: 32, mr: 1 }} />
+              <Typography variant="body2" fontSize="0.8rem">userid</Typography>
+            </Box>
+
+            {/* 내용 */}
+            <TextField
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              multiline
+              rows={6}
+              variant="standard"
+              fullWidth
+              InputProps={{
+                disableUnderline: true,
+                sx: { fontSize: '1.15rem', lineHeight: '1.7', px: 1 },
               }}
             />
-          </Button>
-          {image && <Typography variant="body2">{image.name}</Typography>}
+            <Box sx={{ textAlign: 'right', fontSize: '0.75rem', color: 'gray', mt: 0.5 }}>
+              {content.length}/1000
+            </Box>
+          </Box>
         </Box>
       </DialogContent>
-      <DialogActions sx={{ backgroundColor: 'white' }}>
-        <Button onClick={onClose}>취소</Button>
+
+      <DialogActions sx={{ justifyContent: 'space-between', px: 3, backgroundColor: 'white' }}>
+        <Button onClick={onClose} color="error">취소</Button>
         <Button onClick={handleSubmit} variant="contained">등록</Button>
       </DialogActions>
     </Dialog>
+
   );
 }
