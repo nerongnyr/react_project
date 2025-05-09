@@ -21,7 +21,7 @@ function App() {
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/post" element={<Post />} />
+          <Route path="/feed" element={<Post />} />
           <Route path="/join" element={<Join />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

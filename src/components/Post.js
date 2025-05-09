@@ -16,21 +16,41 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import SendIcon from '@mui/icons-material/Send';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
-const stories = ['user1', 'user2', 'user3', 'user4', 'user5'];
+const stories = ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7'];
 
 export default function HomePage() {
-    const [feedList, setFeedList] = useState()
+    const [feedList, setFeedList] = useState([])
+    const [currentImageIndex, setCurrentImageIndex] = useState({});
 
     const fnFeedList = () => {
         fetch("http://localhost:3005/sns-post")
         .then(res => res.json())
-        .then(data => setFeedList(data.list))
+        .then(data => {
+            console.log("받은 데이터:", data)
+            setFeedList(data.list)
+        })
       }
     
       useEffect(()=>{
         fnFeedList()
       }, [])
+
+      const handlePrev = (postIdx) => {
+        setCurrentImageIndex(prev => ({
+          ...prev,
+          [postIdx]: Math.max((prev[postIdx] || 0) - 1, 0)
+        }));
+      };
+      
+      const handleNext = (postIdx, maxLength) => {
+        setCurrentImageIndex(prev => ({
+          ...prev,
+          [postIdx]: Math.min((prev[postIdx] || 0) + 1, maxLength - 1)
+        }));
+      };
 
     return (
         <Box sx={{ bgcolor: '#fff', minHeight: '100vh' }}>
@@ -48,7 +68,7 @@ export default function HomePage() {
             </AppBar>
 
             {/* 스토리 */}
-            <Box sx={{ display: 'flex', overflowX: 'auto', px: 2, py: 1 }}>
+            <Box sx={{ display: 'flex', overflowX: 'hidden', px: 2, py: 1 }}>
             {stories.map((name, index) => (
                 <Box key={index} sx={{ textAlign: 'center', mr: 2 }}>
                 <Avatar
@@ -67,14 +87,33 @@ export default function HomePage() {
                     <Card key={index} sx={{ mb: 4 }}>
                         <CardHeader
                         avatar={<Avatar src={post.avatar || `/avatars/default.png`} />}
-                        title={post.user}
+                        title={post.userid}
                         />
-                        <CardMedia
-                        component="img"
-                        height="400"
-                        image={post.image || '/posts/default.jpg'}
-                        alt="post"
-                        />
+                        {/* 이미지 슬라이더 */}
+                        <Box sx={{ position: 'relative' }}>
+                            <CardMedia
+                            component="img"
+                            height="400"
+                            image={post.images[currentImageIndex[index]]}
+                            alt="post"
+                            />
+                            {post.images.length > 1 && (
+                            <>
+                                <IconButton
+                                onClick={() => handlePrev(index)}
+                                sx={{ position: 'absolute', top: '50%', left: 0, color: 'white' }}
+                                >
+                                <ArrowBackIosNewIcon />
+                                </IconButton>
+                                <IconButton
+                                onClick={() => handleNext(index, post.images.length)}
+                                sx={{ position: 'absolute', top: '50%', right: 0, color: 'white' }}
+                                >
+                                <ArrowForwardIosIcon />
+                                </IconButton>
+                            </>
+                            )}
+                        </Box>
                         <CardActions disableSpacing>
                         <IconButton><FavoriteBorderIcon /></IconButton>
                         <IconButton><ChatBubbleOutlineIcon /></IconButton>
@@ -86,9 +125,9 @@ export default function HomePage() {
                         <Typography variant="body2" fontWeight="bold">
                             {post.likes || 0}명이 좋아합니다
                         </Typography>
-                        <Typography variant="body2">
-                            <b>{post.user}</b> {post.caption}
-                        </Typography>
+                        {post.comments.map(comment => (
+                            <Typography key={comment.id}><b>{comment.userid}</b> {comment.content}</Typography>
+                        ))}
                         </CardContent>
                     </Card>
                     ))
