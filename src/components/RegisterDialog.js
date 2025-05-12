@@ -18,11 +18,14 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
       try {
         const decoded = jwtDecode(token);
         setSessionUser(decoded);
+
       } catch (err) {
         console.error("토큰 디코딩 실패", err);
       }
     }
   }, []);
+
+  console.log("sessionUser:", sessionUser);
 
   const handleSubmit = () => {
     if (!content) {
@@ -31,7 +34,9 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
     }
 
     const formData = new FormData();
-    formData.append('userid', sessionUser?.userid);
+    formData.append('userId', sessionUser?.userid);
+    console.log("폼에 넣는 userId:", sessionUser?.userid);
+
     formData.append('content', content);
     images.forEach((file) => {
       formData.append('images', file);
@@ -171,7 +176,14 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
 
       <DialogActions sx={{ justifyContent: 'space-between', px: 3, backgroundColor: 'white' }}>
         <Button onClick={onClose} color="error">취소</Button>
-        <Button onClick={handleSubmit} variant="contained">등록</Button>
+        <Button
+          onClick={() => {
+            handleSubmit();
+          }}
+          variant="contained"
+        >
+          등록
+        </Button>
       </DialogActions>
     </Dialog>
   );

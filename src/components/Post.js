@@ -6,18 +6,9 @@ import {
   Box,
   Avatar,
   IconButton,
-  Card,
-  CardHeader,
-  CardMedia,
-  CardContent,
-  CardActions,
 } from '@mui/material';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import SendIcon from '@mui/icons-material/Send';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import PostCard from './PostCard';
 
 const stories = ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7'];
 
@@ -84,52 +75,14 @@ export default function HomePage() {
             <Box sx={{ px: 2 }}>
                 {feedList && feedList.length > 0 ? (
                     feedList.map((post, index) => (
-                    <Card key={index} sx={{ mb: 4 }}>
-                        <CardHeader
-                        avatar={<Avatar src={post.avatar || `/avatars/default.png`} />}
-                        title={post.userid}
+                        <PostCard
+                          key={index}
+                          post={post}
+                          index={index}
+                          currentImageIndex={currentImageIndex[index] || 0}
+                          onPrev={() => handlePrev(index)}
+                          onNext={() => handleNext(index, post.images.length)}
                         />
-                        {/* 이미지 슬라이더 */}
-                        <Box sx={{ position: 'relative' }}>
-                            <CardMedia
-                            component="img"
-                            height="400"
-                            image={post.images[currentImageIndex[index]]}
-                            alt="post"
-                            />
-                            {post.images.length > 1 && (
-                            <>
-                                <IconButton
-                                onClick={() => handlePrev(index)}
-                                sx={{ position: 'absolute', top: '50%', left: 0, color: 'white' }}
-                                >
-                                <ArrowBackIosNewIcon />
-                                </IconButton>
-                                <IconButton
-                                onClick={() => handleNext(index, post.images.length)}
-                                sx={{ position: 'absolute', top: '50%', right: 0, color: 'white' }}
-                                >
-                                <ArrowForwardIosIcon />
-                                </IconButton>
-                            </>
-                            )}
-                        </Box>
-                        <CardActions disableSpacing>
-                        <IconButton><FavoriteBorderIcon /></IconButton>
-                        <IconButton><ChatBubbleOutlineIcon /></IconButton>
-                        <IconButton><SendIcon /></IconButton>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <IconButton><BookmarkBorderIcon /></IconButton>
-                        </CardActions>
-                        <CardContent>
-                        <Typography variant="body2" fontWeight="bold">
-                            {post.likes || 0}명이 좋아합니다
-                        </Typography>
-                        {post.comments.map(comment => (
-                            <Typography key={comment.id}><b>{comment.userid}</b> {comment.content}</Typography>
-                        ))}
-                        </CardContent>
-                    </Card>
                     ))
                 ) : (
                     <Typography align="center" sx={{ mt: 4, color: '#888' }}>
