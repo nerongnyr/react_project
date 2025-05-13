@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-  AppBar,
-  Toolbar,
   Typography,
   Box,
   Avatar,
-  IconButton,
 } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
 import PostCard from './PostCard';
 
 const stories = ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7'];
@@ -46,17 +42,6 @@ export default function HomePage() {
     return (
         <Box sx={{ bgcolor: '#fff', minHeight: '100vh' }}>
         <Box sx={{ maxWidth: 530, mx: 'auto' }}>
-            {/* 상단바 */}
-            <AppBar position="static" elevation={1} sx={{ bgcolor: 'white', color: 'black' }}>
-            <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1, fontFamily: 'Pretendard, sans-serif' }}>
-                Instagram
-                </Typography>
-                <IconButton>
-                <SendIcon />
-                </IconButton>
-            </Toolbar>
-            </AppBar>
 
             {/* 스토리 */}
             <Box sx={{ display: 'flex', overflowX: 'hidden', px: 2, py: 1 }}>

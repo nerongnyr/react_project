@@ -7,7 +7,7 @@ import Post from './components/Post';
 import Register from './components/RegisterDialog';
 import MyPage from './components/MyPage';
 import Menu from './components/Menu'; 
-import Search from './components/Search'; 
+import SearchPanel from './components/SearchPanel'; 
 import Dm from './components/Dm'; 
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
           <Route path="/join" element={<Join />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/search" element={<Search />} />
+          <Route path="/search" element={<SearchPanel />} />
           <Route path="/dm" element={<Dm />} />
           <Route path="/mypage" element={<MyPage />} />
         </Routes>

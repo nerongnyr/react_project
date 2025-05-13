@@ -35,7 +35,6 @@ export default function RegisterDialog({ open, onClose, onSuccess }) {
 
     const formData = new FormData();
     formData.append('userId', sessionUser?.userid);
-    console.log("폼에 넣는 userId:", sessionUser?.userid);
 
     formData.append('content', content);
     images.forEach((file) => {

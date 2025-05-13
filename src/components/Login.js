@@ -39,7 +39,7 @@ export default function LoginPage() {
         if (result.token) {
           localStorage.setItem('token', result.token);
           alert('로그인 성공!');
-          navigate("/post");
+          navigate("/feed");
         } else {
           setOpen(true);
         }
