@@ -9,6 +9,7 @@ import MyPage from './components/MyPage';
 import Menu from './components/Menu'; 
 import SearchPanel from './components/SearchPanel'; 
 import Dm from './components/Dm'; 
+import EditPostPage from './components/EditPostPage';
 
 function App() {
   const location = useLocation();
@@ -28,6 +29,7 @@ function App() {
           <Route path="/search" element={<SearchPanel />} />
           <Route path="/dm" element={<Dm />} />
           <Route path="/mypage" element={<MyPage />} />
+          <Route path="/edit/:id" element={<EditPostPage />} />
         </Routes>
       </Box>
     </Box>

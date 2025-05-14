@@ -115,8 +115,8 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
   const handleClose = () => setAnchorEl(null);
  
   const handleEdit = () => {
-    navigate("/register"); 
-  };
+    navigate(`/edit/${post.id}`);
+  };  
 
   const handleDelete = async () => {
     handleClose(); // 메뉴 닫기
