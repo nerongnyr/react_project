@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  CardHeader,
-  CardMedia,
-  CardContent,
-  CardActions,
-  IconButton,
-  Avatar,
-  Typography,
-  Box
+  Card, CardHeader, CardMedia, CardContent, CardActions,
+  IconButton, Avatar, Typography, Box, Menu, MenuItem, Button
 } from '@mui/material';
-
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import SendIcon from '@mui/icons-material/Send';
@@ -18,12 +10,10 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import { jwtDecode } from 'jwt-decode';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import Button from '@mui/material/Button';
 import CommentDialog from './CommentDialog';
+import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 function getTimeAgo(datetime) {
   const diff = Date.now() - new Date(datetime).getTime();
@@ -45,6 +35,8 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
   const [sessionUser, setSessionUser] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
+  const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -59,7 +51,7 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
 
     const fetchLikeCount = async () => {
       try {
-        const res = await fetch("http://localhost:3005/sns-post/" + post.id + "/likes-count");
+        const res = await fetch(`http://localhost:3005/sns-post/${post.id}/likes-count`);
         const data = await res.json();
         setLikeCount(data.count);
       } catch (error) {
@@ -70,10 +62,8 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
     const fetchFollowing = async () => {
       if (!token || !post.userid) return;
       try {
-        const res = await fetch("http://localhost:3005/sns-post/follow/check?target=" + post.userid, {
-          headers: {
-           "Authorization": "Bearer " + token,
-          }
+        const res = await fetch(`http://localhost:3005/sns-post/follow/check?target=${post.userid}`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         setIsFollowing(data.isFollowing);
@@ -83,13 +73,10 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
     };
 
     const fetchLikedStatus = async () => {
-      const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:3005/sns-post/" + post.id + "/liked", {
-          headers: {
-            Authorization: "Bearer " + token
-          }
+        const res = await fetch(`http://localhost:3005/sns-post/${post.id}/liked`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         setLiked(data.liked);
@@ -105,37 +92,18 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
 
   const handleLike = async () => {
     const token = localStorage.getItem("token");
-    let userId = null;
-
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        userId = decoded.userid || decoded.id || decoded.sub;
-      } catch (e) {
-        console.error("토큰 디코딩 오류:", e);
-      }
-    }
-
-    if (!userId) {
-      alert("로그인이 필요합니다.");
-      return;
-    }
+    if (!token) return alert("로그인이 필요합니다.");
 
     try {
-      const response = await fetch("http://localhost:3005/sns-post/" + post.id + "/like", {
+      const res = await fetch(`http://localhost:3005/sns-post/${post.id}/like`, {
         method: 'POST',
-        headers: {
-          "Authorization": "Bearer " + token,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({}),
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
       });
-
-      const data = await response.json();
-
+      const data = await res.json();
       setLiked(data.status === 'liked');
 
-      const countRes = await fetch("http://localhost:3005/sns-post/" + post.id + "/likes-count");
+      const countRes = await fetch(`http://localhost:3005/sns-post/${post.id}/likes-count`);
       const countData = await countRes.json();
       setLikeCount(countData.count);
     } catch (error) {
@@ -143,33 +111,48 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
     }
   };
 
-  const handleMoreClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
+  const handleMoreClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+ 
   const handleEdit = () => {
-    console.log("수정 클릭됨:", post.id);
-    handleClose();
+    navigate("/register"); 
   };
 
-  const handleDelete = () => {
-    console.log("삭제 클릭됨:", post.id);
-    handleClose();
-  };
+  const handleDelete = async () => {
+    handleClose(); // 메뉴 닫기
+  
+    const confirmed = window.confirm("정말 이 게시물을 삭제하시겠습니까?");
+    if (!confirmed) return;
+  
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:3005/sns-post/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      const data = await res.json();
+
+      if (data.success) {
+        alert("게시물이 삭제되었습니다.");
+        window.location.reload(); // 새로고침
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error("게시물 삭제 실패:", err);
+      alert("오류가 발생했습니다.");
+    }
+  };  
 
   const handleFollow = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:3005/follow/toggle`, {
+      const res = await fetch("http://localhost:3005/follow/toggle", {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ targetUserId: post.userid })
       });
       const data = await res.json();
@@ -184,30 +167,20 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
   return (
     <Card sx={{ mb: 4 }}>
       <CardHeader
-        avatar={<Avatar src={post.userProfile || `/avatars/default.png`} />}
+        avatar={<Avatar src={post.userProfile || '/avatars/default.png'} />}
         title={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="subtitle2">{post.username || post.userid}</Typography>
             {sessionUser && sessionUser.userid !== post.userid && (
-              <Button size="small" onClick={handleFollow}>
-                {isFollowing ? '팔로잉' : '팔로우'}
-              </Button>
+              <Button size="small" onClick={handleFollow}>{isFollowing ? '팔로잉' : '팔로우'}</Button>
             )}
           </Box>
         }
         subheader={time}
         action={
           <>
-            <IconButton onClick={handleMoreClick}>
-              <MoreVertIcon />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
+            <IconButton onClick={handleMoreClick}><MoreVertIcon /></IconButton>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
               <MenuItem onClick={handleEdit}>수정</MenuItem>
               <MenuItem onClick={handleDelete}>삭제</MenuItem>
             </Menu>
@@ -219,7 +192,7 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
         <CardMedia
           component="img"
           height="400"
-          image={"http://localhost:3005" + post.images[currentImageIndex]}
+          image={`http://localhost:3005${post.images[currentImageIndex]}`}
           alt="post"
         />
         {post.images.length > 1 && (
@@ -238,45 +211,34 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
         <IconButton onClick={handleLike}>
           {liked ? <FavoriteIcon sx={{ color: 'red' }} /> : <FavoriteBorderIcon />}
         </IconButton>
-        <IconButton><ChatBubbleOutlineIcon /></IconButton>
+        <IconButton onClick={() => setCommentOpen(true)}><ChatBubbleOutlineIcon /></IconButton>
         <IconButton><SendIcon /></IconButton>
         <Box sx={{ flexGrow: 1 }} />
         <IconButton><BookmarkBorderIcon /></IconButton>
       </CardActions>
 
       <CardContent>
-        <Typography variant="body2" fontWeight="bold">
-          {likeCount || 0}명이 좋아합니다
-        </Typography>
-        <Typography variant="body2">
-          <b>{post.username || post.userid}</b> {post.content}
-        </Typography>
-        {post.comments.map(comment => (
+        <Typography variant="body2" fontWeight="bold">{likeCount || 0}명이 좋아합니다</Typography>
+        <Typography variant="body2"><b>{post.username || post.userid}</b> {post.content}</Typography>
+
+        {Array.isArray(post.comments) && post.comments.slice(0, 2).map(comment => (
           <Typography key={comment.id}><b>{comment.userid}</b> {comment.content}</Typography>
         ))}
-      {Array.isArray(post.comments) && post.comments.length > 0 ? (
-        <Typography
-          variant="body2"
-          sx={{ color: 'gray', cursor: 'pointer', mt: 1 }}
-          onClick={() => setCommentOpen(true)}
-        >
-          댓글 {post.comments.length}개 모두 보기
-        </Typography>
-      ) : (
+
         <Typography
           variant="body2"
           sx={{ color: 'gray', mt: 1, cursor: 'pointer' }}
-          onClick={() => setCommentOpen(true)} 
+          onClick={() => setCommentOpen(true)}
         >
-          댓글이 없습니다.
+          {commentCount > 0 ? `댓글 ${commentCount}개 모두 보기` : '댓글이 없습니다.'}
         </Typography>
-      )}
       </CardContent>
+
       <CommentDialog
         open={commentOpen}
         onClose={() => setCommentOpen(false)}
         post={post}
-        imageUrl={"http://localhost:3005" + post.images[currentImageIndex]}
+        onCommentChange={(count) => setCommentCount(count)}
       />
     </Card>
   );
