@@ -41,6 +41,7 @@ export default function CommentDialog({ open, onClose, post, onCommentChange }) 
   }, []);
 
   const fetchComments = useCallback(() => {
+    if (!post) return ;
     fetch(`http://localhost:3005/sns-post/${post.id}/comments`, {
       method: 'GET', 
       headers: {
@@ -53,7 +54,7 @@ export default function CommentDialog({ open, onClose, post, onCommentChange }) 
         setComments(data);
         if (onCommentChange) onCommentChange(data.length);
       });
-  }, [post.id, onCommentChange]);
+  }, [post, onCommentChange ]);
 
   useEffect(() => {
     if (post) fetchComments();
@@ -70,6 +71,8 @@ export default function CommentDialog({ open, onClose, post, onCommentChange }) 
       }
     }
   }, [replyingTo, comments, inputValue]);
+
+  if (!post) return null;
 
   const handleSubmit = () => {
     if (inputValue.trim() === '') return;
@@ -227,7 +230,7 @@ export default function CommentDialog({ open, onClose, post, onCommentChange }) 
           <IconButton onClick={onClose} sx={{ position: 'absolute', top: 8, right: 8 }}><CloseIcon /></IconButton>
           <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
             <Avatar src={post.userProfile} sx={{ mr: 1 }} />
-            <Typography variant="subtitle2">{post.username || post.userid}</Typography>
+            <Typography variant="subtitle2">{post.userid}</Typography>
           </Box>
           <Divider />
 

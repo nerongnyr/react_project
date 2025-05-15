@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from "react-router-dom";
 
 export default function RegisterDialog({ open, onClose, onSuccess, post }) {
   const [content, setContent] = useState('');
@@ -13,6 +14,7 @@ export default function RegisterDialog({ open, onClose, onSuccess, post }) {
   const [existingImagesDisplay, setExistingImagesDisplay] = useState([]); // UI 표시용 경로
   const [imageIndex, setImageIndex] = useState(0);
   const [sessionUser, setSessionUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -73,6 +75,7 @@ export default function RegisterDialog({ open, onClose, onSuccess, post }) {
           setExistingImagesDisplay([]);
           onSuccess?.();
           onClose?.();
+          navigate("/feed");
         } else {
           throw new Error(data.message || '실패');
         }

@@ -6,6 +6,7 @@ import {
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import SendIcon from '@mui/icons-material/Send';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -36,6 +37,7 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
   const [commentCount, setCommentCount] = useState(post.comments?.length || 0);
+  const [bookmarked, setBookmarked] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,6 +87,20 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
       }
     };
 
+    const fetchBookmarked = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(`http://localhost:3005/sns-post/${post.id}/bookmarked`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setBookmarked(data.bookmarked);
+      } catch (err) {
+        console.error("북마크 여부 확인 실패:", err);
+      }
+    };
+
+    fetchBookmarked();
     fetchLikeCount();
     fetchFollowing();
     fetchLikedStatus();
@@ -162,6 +178,26 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
     }
   };
 
+  const handleBookmark = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return alert("로그인이 필요합니다.");
+  
+    try {
+      const res = await fetch(`http://localhost:3005/sns-post/${post.id}/bookmark`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      setBookmarked(data.bookmarked);
+    } catch (err) {
+      console.error("북마크 처리 실패:", err);
+    }
+  };  
+
   const time = getTimeAgo(post.cdatetime);
 
   return (
@@ -214,7 +250,9 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
         <IconButton onClick={() => setCommentOpen(true)}><ChatBubbleOutlineIcon /></IconButton>
         <IconButton><SendIcon /></IconButton>
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton><BookmarkBorderIcon /></IconButton>
+        <IconButton onClick={handleBookmark}>
+          {bookmarked ? <BookmarkIcon sx={{ color: 'black' }} /> : <BookmarkBorderIcon />}
+        </IconButton>
       </CardActions>
 
       <CardContent>
