@@ -166,7 +166,7 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
   const handleFollow = async () => {
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("http://localhost:3005/follow/toggle", {
+      const res = await fetch("http://localhost:3005/sns-user/follow/toggle", {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ targetUserId: post.userid })
@@ -202,13 +202,26 @@ export default function PostCard({ post, currentImageIndex, onPrev, onNext }) {
 
   return (
     <Card sx={{ mb: 4 }}>
-      <CardHeader
-        avatar={<Avatar src={post.userProfile || '/avatars/default.png'} />}
+     <CardHeader
+        avatar={
+          <Avatar 
+            sx={{ cursor: 'pointer' }}
+            onClick={() => navigate(`/profile/${post.userid}`)} 
+            src={"http://localhost:3005" + post.userProfile || '/avatars/default.png'} 
+          />}
         title={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="subtitle2">{post.username || post.userid}</Typography>
+            <Typography
+              variant="subtitle2"
+              sx={{ cursor: 'pointer' }}
+              onClick={() => navigate(`/profile/${post.userid}`)}
+            >
+              {post.username || post.userid}
+            </Typography>
             {sessionUser && sessionUser.userid !== post.userid && (
-              <Button size="small" onClick={handleFollow}>{isFollowing ? '팔로잉' : '팔로우'}</Button>
+              <Button size="small" onClick={handleFollow}>
+                {isFollowing ? '팔로잉' : '팔로우'}
+              </Button>
             )}
           </Box>
         }

@@ -77,7 +77,7 @@ export default function RegisterDialog({ open, onClose, onSuccess, post }) {
           onClose?.();
           navigate("/feed");
         } else {
-          throw new Error(data.message || '실패');
+          alert(data.message || (post ? '수정 실패' : '등록 실패'));
         }
       })
       .catch(err => {

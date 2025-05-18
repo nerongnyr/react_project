@@ -11,6 +11,7 @@ import SearchPanel from './components/SearchPanel';
 import Dm from './components/Dm'; 
 import EditPostPage from './components/EditPostPage';
 import NotificationPage from './components/NotificationPanel'
+import UserProfilePage from './components/UserProfilePage'
 
 function App() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function App() {
           <Route path="/notifications" element={<NotificationPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/edit/:id" element={<EditPostPage />} />
+          <Route path="/profile/:userid" element={<UserProfilePage />} />
         </Routes>
       </Box>
     </Box>

@@ -1,58 +1,73 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box, Avatar, Typography, Grid, Tabs, Tab, Divider, Button
+  Box, Avatar, Typography, Grid, Button, Divider
 } from '@mui/material';
+import { jwtDecode } from 'jwt-decode';
 import CommentDialog from '../components/CommentDialog';
-import EditProfileDialog from '../components/EditProfileDialog';
 import FollowListDialog from './FollowListDialog';
 
-export default function MyPage() {
-  const [tab, setTab] = useState(0);
-  const [user, setUser] = useState(null); // 로그인한 사용자 정보
-  const [posts, setPosts] = useState([]); // 썸네일 목록
-  const [selectedPost, setSelectedPost] = useState(null); 
+export default function UserProfilePage() {
+  const { userid } = useParams();
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [followOpen, setFollowOpen] = useState(false);
   const [followType, setFollowType] = useState('followers');
 
-  // 로그인 사용자 정보 + 게시물 목록 불러오기
-  const fetchUser = () => {
-    const token = localStorage.getItem("token");
-    fetch('http://localhost:3005/sns-user/me', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        setUser(data.user || {});
-        setPosts(data.posts || []);
-      })
-      .catch(err => console.error("유저 정보 불러오기 실패:", err));
-  };
-
-  const fetchBookmarks = () => {
-    const token = localStorage.getItem("token");
-    fetch('http://localhost:3005/sns-user/bookmarks', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => setBookmarkedPosts(data.posts || []))
-      .catch(err => console.error("저장된 게시물 불러오기 실패:", err));
-  };
-  
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const decoded = jwtDecode(token);
+    if (decoded.userid === userid) {
+      navigate('/mypage');
+      return;
+    }
+
+    const fetchUser = async () => {
+      const res = await fetch(`http://localhost:3005/sns-user/${userid}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setUser(data);
+      setIsFollowing(data.isFollowing);
+    };
+
+    const fetchPosts = async () => {
+      const res = await fetch(`http://localhost:3005/sns-user/user/${userid}`);
+      const data = await res.json();
+      setPosts(data.posts);
+    };
+
     fetchUser();
-    fetchBookmarks(); // 추가
-  }, []);  
+    fetchPosts();
+  }, [userid, navigate]);
+
+  const handleFollow = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:3005/sns-user/follow/toggle", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ targetUserId: userid }),
+    });
+    const data = await res.json();
+    setIsFollowing(data.isFollowing);
+
+    setUser(prev => ({
+    ...prev,
+    followerCount: prev.followerCount + (data.isFollowing ? 1 : -1)
+  }));
+  };
 
   const handleThumbnailClick = async (post) => {
     const token = localStorage.getItem("token");
-
     const res = await fetch(`http://localhost:3005/sns-post/${post.id}`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -61,25 +76,27 @@ export default function MyPage() {
     const data = await res.json();
     setSelectedPost(data);
     setDialogOpen(true);
-  };  
+  };
+
+  if (!user) return <Typography>로딩 중...</Typography>;
 
   return (
     <Box sx={{ bgcolor: '#fff', minHeight: '100vh', fontFamily: '"Pretendard", sans-serif' }}>
       <Box sx={{ maxWidth: 640, mx: 'auto', px: 2, py: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'space-between' }}>
           <Avatar
-            src={"http://localhost:3005" + user?.profileImg || '/avatars/default.png'}
+            src={"http://localhost:3005" + user.profile_img || '/avatars/default.png'}
             sx={{ width: 80, height: 80, mr: 2 }}
           />
           <Box sx={{ flexGrow: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000' }}>
-                {user?.userid || 'userid'}
+                {user.userid}
               </Typography>
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => setEditOpen(true)}
+                onClick={handleFollow}
                 sx={{
                   fontWeight: 'bold',
                   color: '#000',
@@ -91,16 +108,16 @@ export default function MyPage() {
                   px: 1.5
                 }}
               >
-                프로필 편집
+                {isFollowing ? "팔로잉" : "팔로우"}
               </Button>
             </Box>
             <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
               <Typography variant="body2"><b>{posts.length}</b> 게시물</Typography>
               <Typography variant="body2" onClick={() => { setFollowType('followers'); setFollowOpen(true); }} sx={{ cursor: 'pointer' }}>
-                <b>{user?.followerCount || 0}</b> 팔로워
+                <b>{user.followerCount}</b> 팔로워
               </Typography>
               <Typography variant="body2" onClick={() => { setFollowType('followings'); setFollowOpen(true); }} sx={{ cursor: 'pointer' }}>
-                <b>{user?.followingCount || 0}</b> 팔로잉
+                <b>{user.followingCount}</b> 팔로잉
               </Typography>
 
               <FollowListDialog
@@ -114,26 +131,18 @@ export default function MyPage() {
         </Box>
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2">{user?.username || ''}</Typography>
-          <Typography variant="body2">{user?.bio || ''}</Typography>
+          <Typography variant="subtitle2">{user.username || ''}</Typography>
+          <Typography variant="body2">{user.bio || ''}</Typography>
         </Box>
 
-        <Divider sx={{ mb: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-        <Tabs value={tab} onChange={(_, newVal) => setTab(newVal)} centered>
-          <Tab label="게시물" />
-          <Tab label="저장됨" />
-        </Tabs>
-
-        <Divider sx={{ mt: 2, mb: 1 }} />
-
-        <Box sx={{ width: '100%', mt: 2 }}>
         <Grid
           container
           spacing={0.5}
           sx={{ margin: 0, width: '100%', '--spacing': '4px' }}
         >
-          {(tab === 0 ? posts : bookmarkedPosts).map((post, i) => (
+          {posts.map((post, i) => (
             <Grid
               item
               key={post.id || i}
@@ -147,7 +156,7 @@ export default function MyPage() {
               }}
             >
               <img
-                src={`http://localhost:3005${post.thumbnail}`}
+                src={`http://localhost:3005${post.img}`}
                 alt={`post-${i}`}
                 style={{
                   width: '100%',
@@ -159,20 +168,11 @@ export default function MyPage() {
             </Grid>
           ))}
         </Grid>
-        </Box>
 
         <CommentDialog
           open={dialogOpen}
           onClose={() => setDialogOpen(false)}
           post={selectedPost}
-        />
-        <EditProfileDialog
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          userData={user}
-          onSave={() => {
-            fetchUser();  
-          }}
         />
       </Box>
     </Box>

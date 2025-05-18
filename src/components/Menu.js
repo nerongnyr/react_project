@@ -28,7 +28,8 @@ import { Link } from 'react-router-dom';
 
 import RegisterDialog from './RegisterDialog';
 import SearchPanel from './SearchPanel';
-import NotificationPanel from './NotificationPanel'; // 알림 패널을 슬라이딩 컴포넌트로 새로 구성
+import NotificationPanel from './NotificationPanel'; 
+import MoreMenu from './MoreMenu';
 
 const drawerWidthExpanded = 240;
 const drawerWidthCollapsed = 70;
@@ -43,26 +44,26 @@ function Menu() {
 
   const hideText = collapsed || isMobile;
 
-  const toggleMenu = (collapse = true) => {
-    setCollapsed(collapse);
+  const closeAllPanels = () => {
+    setIsSearchOpen(false);
+    setOpenNoti(false);
   };
 
   const handleSearchClick = () => {
-    toggleMenu(true);
-    setIsSearchOpen(prev => !prev);
-    setOpenNoti(false);
+    closeAllPanels();
+    setCollapsed(true);
+    setIsSearchOpen(true);
   };
 
   const handleNotiClick = () => {
-    toggleMenu(true);
-    setOpenNoti(prev => !prev);
-    setIsSearchOpen(false);
+    closeAllPanels();
+    setCollapsed(true);
+    setOpenNoti(true);
   };
 
   const handleHomeClick = () => {
-    toggleMenu(false);
-    setIsSearchOpen(false);
-    setOpenNoti(false);
+    setCollapsed(false);
+    closeAllPanels();
   };
 
   useEffect(() => {
@@ -92,50 +93,58 @@ function Menu() {
             width: hideText ? drawerWidthCollapsed : drawerWidthExpanded,
             boxSizing: 'border-box',
             transition: 'width 0.3s',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between' // 상단/하단 분리
           },
         }}
       >
-        <Toolbar />
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-          {hideText
-            ? <Instagram sx={{ fontSize: 24 }} />
-            : <Typography variant="h5">Instagram</Typography>}
+        {/* 상단 메뉴 */}
+        <Box>
+          <Toolbar />
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+            {hideText
+              ? <Instagram sx={{ fontSize: 24 }} />
+              : <Typography variant="h5">Instagram</Typography>}
+          </Box>
+          <List>
+            <ListItem button component={Link} to="/feed" onClick={handleHomeClick}>
+              <ListItemIcon><Home /></ListItemIcon>
+              {!hideText && <ListItemText primary="홈" />}
+            </ListItem>
+            <ListItem button onClick={handleSearchClick}>
+              <ListItemIcon><Search /></ListItemIcon>
+              {!hideText && <ListItemText primary="검색" />}
+            </ListItem>
+            <ListItem button component={Link} to="/dm">
+              <ListItemIcon><MailOutlineIcon /></ListItemIcon>
+              {!hideText && <ListItemText primary="메시지" />}
+            </ListItem>
+            <ListItem button onClick={handleNotiClick}>
+              <ListItemIcon>
+                <Badge badgeContent={unreadCount} color="error">
+                  <NotificationsNoneIcon />
+                </Badge>
+              </ListItemIcon>
+              {!hideText && <ListItemText primary="알림" />}
+            </ListItem>
+            <ListItem button onClick={() => setOpenRegister(true)}>
+              <ListItemIcon><AddBoxIcon /></ListItemIcon>
+              {!hideText && <ListItemText primary="만들기" />}
+            </ListItem>
+            <ListItem button component={Link} to="/mypage">
+              <ListItemIcon><AccountCircle /></ListItemIcon>
+              {!hideText && <ListItemText primary="프로필" />}
+            </ListItem>
+          </List>
         </Box>
-        <List>
-          <ListItem button component={Link} to="/feed" onClick={handleHomeClick}>
-            <ListItemIcon><Home /></ListItemIcon>
-            {!hideText && <ListItemText primary="홈" />}
-          </ListItem>
 
-          <ListItem button onClick={handleSearchClick}>
-            <ListItemIcon><Search /></ListItemIcon>
-            {!hideText && <ListItemText primary="검색" />}
-          </ListItem>
-
-          <ListItem button component={Link} to="/dm">
-            <ListItemIcon><MailOutlineIcon /></ListItemIcon>
-            {!hideText && <ListItemText primary="메시지" />}
-          </ListItem>
-
-          <ListItem button onClick={handleNotiClick}>
-            <ListItemIcon>
-              <Badge badgeContent={unreadCount} color="error">
-                <NotificationsNoneIcon />
-              </Badge>
-            </ListItemIcon>
-            {!hideText && <ListItemText primary="알림" />}
-          </ListItem>
-
-          <ListItem button onClick={() => setOpenRegister(true)}>
-            <ListItemIcon><AddBoxIcon /></ListItemIcon>
-            {!hideText && <ListItemText primary="만들기" />}
-          </ListItem>
-
-          <ListItem button component={Link} to="/mypage">
-            <ListItemIcon><AccountCircle /></ListItemIcon>
-            {!hideText && <ListItemText primary="프로필" />}
-          </ListItem>
-        </List>
+        {/* 하단 메뉴 */}
+        <Box>
+           <List>
+            <MoreMenu />
+          </List>
+        </Box>
       </Drawer>
 
       {/* 검색 슬라이드 패널 */}
@@ -177,10 +186,10 @@ function Menu() {
         >
           <Toolbar sx={{ justifyContent: 'space-between', px: 2 }}>
             <Typography variant="h6" fontWeight="bold">알림</Typography>
-            <IconButton onClick={() => setOpenNoti(false)}><CloseIcon /></IconButton>
+            <IconButton><CloseIcon /></IconButton>
           </Toolbar>
           <Divider />
-          <NotificationPanel />
+           <NotificationPanel open={openNoti} onClose={() => setOpenNoti(false)} />
         </Box>
       </Slide>
 

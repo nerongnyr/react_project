@@ -5,11 +5,13 @@ import {
   TextField,
   Avatar,
   InputAdornment,
-  IconButton
+  IconButton,
+  Button
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom'; 
 
 export default function SearchPanel() {
   const [query, setQuery] = useState('');
@@ -18,8 +20,8 @@ export default function SearchPanel() {
   const [history, setHistory] = useState([]);
   const inputRef = useRef();
   const [sessionUser, setSessionUser] = useState(null);
+  const navigate = useNavigate(); 
 
-  // 인증 사용자 정보 확인
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
 
@@ -35,27 +37,18 @@ export default function SearchPanel() {
     }
   }, []);
 
-  // 최근 검색 기록 불러오기
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!sessionUser || !token) return;
 
     fetch("http://localhost:3005/sns-post/search-history", {
-      headers: {
-        "Authorization": "Bearer " + token
-      }
+      headers: { Authorization: "Bearer " + token }
     })
       .then(res => res.json())
-      .then(data => {
-        setHistory(data); // [{ keyword }]
-      })
-      .catch(err => {
-        console.error("검색 기록 불러오기 실패:", err.message);
-      });
+      .then(data => setHistory(data))
+      .catch(err => console.error("검색 기록 불러오기 실패:", err.message));
   }, [sessionUser]);
 
-  // 검색 실행
   useEffect(() => {
     if (query.trim() === '') {
       setResults([]);
@@ -63,30 +56,19 @@ export default function SearchPanel() {
       return;
     }
 
-    if (!sessionUser) {
-      console.warn("로그인 사용자만 검색 가능합니다.");
-      return;
-    }
+    if (!sessionUser) return;
 
     setLoading(true);
-
     const timeout = setTimeout(() => {
       const token = localStorage.getItem("token");
 
       fetch("http://localhost:3005/sns-post/search-users?query=" + encodeURIComponent(query), {
         method: 'GET',
-        headers: {
-          "Authorization": "Bearer " + token
-        }
+        headers: { "Authorization": "Bearer " + token }
       })
-        .then(async (res) => {
-          if (!res.ok) {
-            const error = await res.json();
-            throw new Error(error.error || "검색 실패");
-          }
-          return res.json();
-        })
+        .then(res => res.json())
         .then((data) => {
+          console.log(data)
           setResults(data);
           setLoading(false);
         })
@@ -100,26 +82,42 @@ export default function SearchPanel() {
     return () => clearTimeout(timeout);
   }, [query, sessionUser]);
 
-  // 검색 기록 삭제
+  const toggleFollow = async (targetId) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch('http://localhost:3005/sns-user/follow/toggle', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ targetUserId: targetId })
+    });
+    const data = await res.json();
+    setResults(prev =>
+      prev.map(user =>
+        user.userid === targetId ? { ...user, isFollowing: data.isFollowing } : user
+      )
+    );
+  };
+
   const handleDeleteHistory = (userid) => {
     const token = localStorage.getItem("token");
-  
     fetch("http://localhost:3005/sns-post/delete-history", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + token,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ keyword: userid }) // userid가 keyword로 저장됨
+      body: JSON.stringify({ keyword: userid })
     })
       .then(res => res.json())
       .then(() => {
-        setHistory(prev => prev.filter(item => item.userid !== userid)); // ← 정확히 userid로 비교
+        setHistory(prev => prev.filter(item => item.userid !== userid));
       })
       .catch(err => {
         console.error("기록 삭제 실패:", err.message);
       });
-  };  
+  };
 
   return (
     <Box sx={{ p: 2, bgcolor: '#fff', height: '100%', overflowY: 'auto' }}>
@@ -139,20 +137,15 @@ export default function SearchPanel() {
               <SearchIcon sx={{ color: '#999' }} />
             </InputAdornment>
           ),
-          sx: {
-            borderRadius: 2,
-            backgroundColor: '#f1f1f1',
-          }
+          sx: { borderRadius: 2, backgroundColor: '#f1f1f1' }
         }}
       />
 
-      {/* 검색 기록 */}
       {!loading && query.trim() === '' && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, color: '#888' }}>
             최근 검색 기록
           </Typography>
-
           {history.length > 0 ? (
             history.map((user, index) => (
               <Box
@@ -188,7 +181,6 @@ export default function SearchPanel() {
         </Box>
       )}
 
-      {/* 검색 결과 */}
       {!loading && results.length > 0 && (
         <Box sx={{ mt: 2 }}>
           {results.map((user, index) => (
@@ -197,26 +189,51 @@ export default function SearchPanel() {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 px: 1,
                 py: 1.5,
                 borderRadius: 1,
                 cursor: 'pointer',
-                '&:hover': { backgroundColor: '#f5f5f5' },
+                '&:hover': { backgroundColor: '#f5f5f5' }
               }}
             >
-              <Avatar
-                src={user.avatar}
-                alt={user.username}
-                sx={{ width: 44, height: 44, mr: 2 }}
-              />
-              <Box>
-                <Typography variant="subtitle2" fontWeight={500}>
-                  {user.username || user.userid}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  @{user.userid}
-                </Typography>
+              <Box
+                onClick={() => {
+                  navigate(`/profile/${user.userid}`)
+                  setQuery(user.userid)
+                  inputRef.current?.focus();
+                }} 
+                sx={{ display: 'flex', alignItems: 'center', flex: 1 }}
+              >
+                <Avatar src={"http://localhost:3005" + user.avatar || '/avatars/default.png'} alt={user.username} sx={{ width: 44, height: 44, mr: 2 }} />
+                <Box>
+                  <Typography variant="subtitle2" fontWeight={500}>
+                    {user.username || user.userid}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    @{user.userid}
+                  </Typography>
+                </Box>
               </Box>
+
+              {user.userid !== sessionUser?.userid && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation(); // navigate 방지
+                    toggleFollow(user.userid);
+                  }}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    ml: 2,
+                    minWidth: 80
+                  }}
+                >
+                  {user.isFollowing ? "팔로잉" : "팔로우"}
+                </Button>
+              )}
             </Box>
           ))}
         </Box>
