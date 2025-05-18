@@ -109,7 +109,7 @@ export default function ChatMessageBox({ selectedRoom }) {
         <IconButton><InfoIcon /></IconButton>
       </Box>
 
-      <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto', backgroundColor: '#f9f9f9' }}>
+      <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto', backgroundColor: '#FFF' }}>
         {messages.map((msg, idx) => {
           const isMine = msg.sender_id === myId;
           return (
@@ -118,15 +118,17 @@ export default function ChatMessageBox({ selectedRoom }) {
               sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start', mb: 2 }}
             >
               <Box>
-                <Paper
-                  sx={{
-                    px: 2, py: 1,
-                    backgroundColor: isMine ? '#0095f6' : '#eee',
-                    color: isMine ? '#fff' : '#000',
-                    borderRadius: 3,
-                    maxWidth: 360
-                  }}
-                >
+              <Paper
+                sx={{
+                  px: 2,
+                  py: 1.2,
+                  backgroundColor: isMine ? '#3390ec' : '#f0f2f5',
+                  color: isMine ? '#fff' : '#000',
+                  borderRadius: 20,
+                  maxWidth: 360,
+                  boxShadow: 'none'
+                }}
+              >
                   {msg.file_type === 'image' ? (
                     <img src={msg.file_url || msg.file_data} alt="img" style={{ maxWidth: 300, borderRadius: 8 }} />
                   ) : msg.file_type === 'file' ? (

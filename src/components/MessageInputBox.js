@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+import { Box, TextField, IconButton, Typography } from '@mui/material';
 
 export default function MessageInputBox({ roomId, onSend }) {
   const [text, setText] = useState('');
@@ -11,6 +11,7 @@ export default function MessageInputBox({ roomId, onSend }) {
     const formData = new FormData();
     formData.append('content', text);
     formData.append('file_type', 'text');
+
     const res = await fetch(`http://localhost:3005/sns-chat/${roomId}/messages`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
@@ -25,17 +26,42 @@ export default function MessageInputBox({ roomId, onSend }) {
   };
 
   return (
-    <Box sx={{ display: 'flex', p: 2, borderTop: '1px solid #ddd' }}>
+    <Box sx={{
+      p: 2,
+      borderTop: '1px solid #ddd',
+      bgcolor: '#fff',
+      display: 'flex',
+      alignItems: 'center',
+    }}>
       <TextField
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+        variant="standard"
         fullWidth
         placeholder="메시지 입력..."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') handleSend();
         }}
+        InputProps={{
+          disableUnderline: true,
+          endAdornment: (
+            <IconButton
+              onClick={handleSend}
+              sx={{ color: '#1976d2', ml: 1, p: 0 }}
+            >
+              <Typography fontSize="1rem" fontWeight="bold">전송</Typography>
+            </IconButton>
+          ),
+          sx: {
+            border: '1px solid #ccc',
+            borderRadius: '30px',
+            px: 2,
+            py: 1,
+            fontSize: '0.9rem',
+            bgcolor: '#fff',
+          }
+        }}
       />
-      <Button onClick={handleSend} sx={{ ml: 1 }} variant="contained">전송</Button>
     </Box>
   );
 }

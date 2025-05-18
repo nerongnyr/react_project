@@ -116,7 +116,7 @@ function Menu() {
               <ListItemIcon><Search /></ListItemIcon>
               {!hideText && <ListItemText primary="검색" />}
             </ListItem>
-            <ListItem button component={Link} to="/dm">
+            <ListItem button component={Link} to="/dm" onClick={closeAllPanels}>
               <ListItemIcon><MailOutlineIcon /></ListItemIcon>
               {!hideText && <ListItemText primary="메시지" />}
             </ListItem>
@@ -186,7 +186,9 @@ function Menu() {
         >
           <Toolbar sx={{ justifyContent: 'space-between', px: 2 }}>
             <Typography variant="h6" fontWeight="bold">알림</Typography>
-            <IconButton><CloseIcon /></IconButton>
+            <IconButton onClick={() => setOpenNoti(false)}>
+              <CloseIcon />
+            </IconButton>
           </Toolbar>
           <Divider />
            <NotificationPanel open={openNoti} onClose={() => setOpenNoti(false)} />
