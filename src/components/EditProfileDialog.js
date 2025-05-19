@@ -27,42 +27,46 @@ export default function EditProfileDialog({ open, onClose, userData, onSave }) {
   };
 
   const handleMember = useCallback(() => {
-    let url = "http://localhost:3005/sns-user";
-    if (!token) {
-      navigate("/login");
-      return;
+  let url = "http://localhost:3005/sns-user";
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+  if (sessionUser.userid) {
+    url += "?userid=" + sessionUser.userid;
+  }
+
+  fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
-    if (sessionUser.userid) {
-      url += "?userid=" + sessionUser.userid;
-    }
-  
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.list && data.list.length > 0) {
-          setMemberInfo(data.list[0]); // 첫 번째 사용자 정보 저장
-        }
-      })
-      .catch((err) => {
-        console.error("사용자 정보 가져오기 실패:", err);
-      });
-  }, [token, sessionUser, navigate]);  
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.list && data.list.length > 0) {
+        setMemberInfo(data.list[0]);
+      }
+    })
+    .catch((err) => {
+      console.error("사용자 정보 가져오기 실패:", err);
+    });
+}, [token, sessionUser, navigate]);
 
   useEffect(() => {
-    handleMember();
-  }, [handleMember]);
-
-  useEffect(() => {
-    if (memberInfo) {
-      setBio(memberInfo.bio || '');
-      setPreviewImg(memberInfo.profileImg || '/avatars/default.png');
+      if (open) {
+      handleMember();
     }
-  }, [memberInfo]);
+  }, [open, handleMember]);
+
+ useEffect(() => {
+  if (memberInfo && open) {
+    setBio(memberInfo.bio || '');
+    setPreviewImg("http://localhost:3005" + memberInfo.profileImg || '/avatars/default.png');
+  }
+}, [memberInfo, open]);
 
   const handleSave = () => {
     if (!imgUrl && !bio) return;
-
-    console.log("profileImg:", profileImg);
 
     const formData = new FormData();
     if (profileImg) formData.append('profileImg', profileImg);
