@@ -61,7 +61,7 @@ export default function EditProfileDialog({ open, onClose, userData, onSave }) {
  useEffect(() => {
   if (memberInfo && open) {
     setBio(memberInfo.bio || '');
-    setPreviewImg("http://localhost:3005" + memberInfo.profileImg || '/avatars/default.png');
+    setPreviewImg("http://localhost:3005" + memberInfo.profile_img || '/avatars/default.png');
   }
 }, [memberInfo, open]);
 
@@ -85,6 +85,7 @@ export default function EditProfileDialog({ open, onClose, userData, onSave }) {
           setImgUrl(null);
           setProfileImg(null);
           onClose();
+          navigate('/mypage');
         } else {
           alert('저장 실패');
         }

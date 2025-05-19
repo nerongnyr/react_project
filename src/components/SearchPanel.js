@@ -162,7 +162,7 @@ export default function SearchPanel() {
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center' }} onClick={() => setQuery(user.userid)}>
-                  <Avatar src={user.avatar} sx={{ width: 36, height: 36, mr: 1 }} />
+                  <Avatar src={"http://localhost:3005" + user.avatar} sx={{ width: 36, height: 36, mr: 1 }} />
                   <Box>
                     <Typography variant="body2">{user.username || user.userid}</Typography>
                     <Typography variant="caption" color="text.secondary">@{user.userid}</Typography>

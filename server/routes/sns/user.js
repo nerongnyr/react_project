@@ -27,6 +27,7 @@ router.post("/", async(req, res) => {
                     userid : user[0].userid,
                     username : user[0].username,
                     userPhone : user[0].phone,
+                    profileImg : user[0].profile_img
                 }
                 const token = jwt.sign(payload, JWT_KEY, {expiresIn : '1h'});
                 console.log(token);

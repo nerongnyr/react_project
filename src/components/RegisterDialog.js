@@ -35,6 +35,7 @@ export default function RegisterDialog({ open, onClose, onSuccess, post }) {
       setImages([]);
     }
   }, [post]);
+console.log(sessionUser);
 
   const handleSubmit = () => {
     if (!content) {
@@ -198,7 +199,7 @@ export default function RegisterDialog({ open, onClose, onSuccess, post }) {
           {/* 오른쪽: 텍스트 입력 */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar src={sessionUser?.profileImg || '/avatars/default.png'} sx={{ width: 32, height: 32, mr: 1 }} />
+              <Avatar src={"http://localhost:3005" + sessionUser?.profileImg || '/avatars/default.png'} sx={{ width: 32, height: 32, mr: 1 }} />
               <Typography variant="body2" fontSize="0.8rem">
                 {sessionUser?.userid || '익명'}
               </Typography>

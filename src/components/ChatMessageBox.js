@@ -100,7 +100,7 @@ export default function ChatMessageBox({ selectedRoom }) {
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', p: 2, borderBottom: '1px solid #ddd' }}>
-        <Avatar src={selectedRoom?.avatar || '/avatars/default.png'} sx={{ width: 40, height: 40, mr: 2 }} />
+        <Avatar src={"http://localhost:3005" + selectedRoom?.avatar || '/avatars/default.png'} sx={{ width: 40, height: 40, mr: 2 }} />
         <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
           {selectedRoom?.partner_user_id || '상대방'}
         </Typography>
